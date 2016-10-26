@@ -21,7 +21,7 @@ class Sample extends Adapter
         DeviceID : process.env.HUBOT_WX_DEVICE_ID
         cookie : process.env.HUBOT_WX_COOKIE
 
-    @wechat = wechatApi loginInfo
+    @wechat = do wechatApi
     console.log @wechat
     @robot.logger.info "Constructor"
 
@@ -47,7 +47,7 @@ class Sample extends Adapter
       @robot.logger.error e
 
   test : =>
-    res = yield @wechat.getContact()
+    res = yield @wechat.init()
     @robot.logger.info res
 
 
