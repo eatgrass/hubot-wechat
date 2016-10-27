@@ -18,6 +18,7 @@ node_modules
 # Optional REPL history
 .node_repl_history
 
-# coffee output
+# Editor
 .idea/
+.vscode/
 tmp/
