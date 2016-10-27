@@ -8,8 +8,7 @@
   },
   "author": "eatgrass",
   "license": "MIT",
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "peerDependencies": {
     "hubot": ">=2.0"
   },
