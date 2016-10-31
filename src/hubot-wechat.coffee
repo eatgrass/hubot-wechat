@@ -13,10 +13,9 @@ class Sample extends Adapter
     constructor: ->
         super
 
-        cookie = "pgv_pvi=4981005312; webwxuvid=7bb06db691d2993ec3f5acfbe1a6d41745f4c831819d7b844871ad250e07ec37ec3748bf9b1bda15f887e0575e752a7d; pgv_si=s9650208768; wxpluginkey=1477561321; MM_WX_NOTIFY_STATE=1; MM_WX_SOUND_STATE=1; wxuin=1590754113; wxsid=ITC76p1Kw6eHJlWC; wxloadtime=1477576598; mm_lang=zh_CN; webwx_data_ticket=gSd4ql0lgctOpu7WLbblLrvQ"
+        cookie = "webwxuvid=7bb06db691d2993ec3f5acfbe1a6d417a7afac6c593268bc84d9fd1b9bf56691450c8f206f82e6843bdd34a4cf7cf1d1; pgv_pvi=4412844032; tvfe_boss_uuid=5c5c34ed0123b90e; pgv_pvid=5164137956; pgv_si=s9739249664; wxloadtime=1477917347_expired; wxpluginkey=1477908541; wxuin=1753980132; wxsid=y7YCwjrhj5NL19ix; webwx_data_ticket=gSelgg1CFcISVwaYBs+oxXoE; mm_lang=zh_CN; MM_WX_NOTIFY_STATE=1; MM_WX_SOUND_STATE=1; webwxuvid=7bb06db691d2993ec3f5acfbe1a6d417a7afac6c593268bc84d9fd1b9bf56691450c8f206f82e6843bdd34a4cf7cf1d1; pgv_pvi=4412844032; tvfe_boss_uuid=5c5c34ed0123b90e; pgv_pvid=5164137956; pgv_si=s9739249664; wxpluginkey=1477908541; MM_WX_NOTIFY_STATE=1; MM_WX_SOUND_STATE=1; wxuin=1753980132; wxsid=TCR/XcKPVT001XpA; wxloadtime=1477921807; mm_lang=zh_CN; webwx_data_ticket=gScgyGrmUwdSr/8ZOeBnkNMG"
 
-        b ={"Uin":"1590754113","Sid":"ITC76p1Kw6eHJlWC","Skey":"@crypt_612f6fff_73711bc3551dd3ae8f1a8ea8aa44107a","DeviceID":"e930504458747442"}
-        
+        b ={"Uin":"1753980132","Sid":"TCR/XcKPVT001XpA","Skey":"@crypt_21572829_22f1f1af38aab15b4dba1cf4e575e15d","DeviceID":"e937390160573044"}
         conf =
             uin : b.Uin
             sid : b.Sid
@@ -34,7 +33,9 @@ class Sample extends Adapter
         @robot.logger.info "Reply"
 
     run: ->
-        @robot.logger.info "Run"
+        # @robot.logger.info "Run"
+
+        @wechat.init()
         # do @wechat.syncCheck
         # co @test
         # .then(
