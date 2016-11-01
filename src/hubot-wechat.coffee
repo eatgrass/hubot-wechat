@@ -6,16 +6,17 @@ catch
 
 co = require 'co'
 WechatClient = require './wechat-client'
+_ = require 'lodash'
 
 
-class Sample extends Adapter
+class WechatRobot extends Adapter
 
     constructor: ->
         super
 
-        cookie = "webwxuvid=7bb06db691d2993ec3f5acfbe1a6d417a7afac6c593268bc84d9fd1b9bf56691450c8f206f82e6843bdd34a4cf7cf1d1; pgv_pvi=4412844032; tvfe_boss_uuid=5c5c34ed0123b90e; pgv_pvid=5164137956; pgv_si=s9739249664; wxloadtime=1477917347_expired; wxpluginkey=1477908541; wxuin=1753980132; wxsid=y7YCwjrhj5NL19ix; webwx_data_ticket=gSelgg1CFcISVwaYBs+oxXoE; mm_lang=zh_CN; MM_WX_NOTIFY_STATE=1; MM_WX_SOUND_STATE=1; webwxuvid=7bb06db691d2993ec3f5acfbe1a6d417a7afac6c593268bc84d9fd1b9bf56691450c8f206f82e6843bdd34a4cf7cf1d1; pgv_pvi=4412844032; tvfe_boss_uuid=5c5c34ed0123b90e; pgv_pvid=5164137956; pgv_si=s9739249664; wxpluginkey=1477908541; MM_WX_NOTIFY_STATE=1; MM_WX_SOUND_STATE=1; wxuin=1753980132; wxsid=TCR/XcKPVT001XpA; wxloadtime=1477921807; mm_lang=zh_CN; webwx_data_ticket=gScgyGrmUwdSr/8ZOeBnkNMG"
+        cookie = "webwxuvid=7bb06db691d2993ec3f5acfbe1a6d417a7afac6c593268bc84d9fd1b9bf56691450c8f206f82e6843bdd34a4cf7cf1d1; pgv_pvi=4412844032; tvfe_boss_uuid=5c5c34ed0123b90e; pgv_pvid=5164137956; webwx_auth_ticket=CIsBENW/g9sJGoABE520f3E70cuxcTzYnEyJ0vh3sPj2XJt4CLR1ryXy4QYSwVak2jgHzxbGo1ucKsYX03WrZWj0N2Ed2ZDvpBeD/gehSz+RDGQonCm0CXQZAs/menDd2dG715gkvYqoQwYBxx/UJRnqy8yIjY71S3vgqt9rhU7C14q9aouDZu2G0Ss=; wxloadtime=1477977386_expired; wxpluginkey=1477960742; wxuin=1753980132; wxsid=1Gcv6mOXgIlqSe5L; webwx_data_ticket=gSfpk5rs0UuXyUHQxoNdDS+s; mm_lang=zh_CN; MM_WX_NOTIFY_STATE=1; MM_WX_SOUND_STATE=1; pgv_si=s540050432"
 
-        b ={"Uin":"1753980132","Sid":"TCR/XcKPVT001XpA","Skey":"@crypt_21572829_22f1f1af38aab15b4dba1cf4e575e15d","DeviceID":"e937390160573044"}
+        b ={"Uin":"1753980132","Sid":"OxwrZCe98ue9OcM6","Skey":"@crypt_21572829_ab01e8913b785113782ed0cf8f98a938","DeviceID":"e298990023890308"}
         conf =
             uin : b.Uin
             sid : b.Sid
@@ -23,44 +24,28 @@ class Sample extends Adapter
             deviceId : b.DeviceID
             cookie : cookie
 
-        @wechat = new WechatClient @robot, conf
+        @wechat = new WechatClient @, conf
         @robot.logger.info "Constructor"
 
     send: (envelope, strings...) ->
         @robot.logger.info "Send"
 
+        # send to group
+
+        # send to user
+        _.forEach strings, (content)=>
+            @wechat.send envelope.user.id, content
+        # console.log envelope.user.id
+
     reply: (envelope, strings...) ->
         @robot.logger.info "Reply"
 
+        console.log envelope
+
     run: ->
-        # @robot.logger.info "Run"
-
         @wechat.init()
-        # do @wechat.syncCheck
-        # co @test
-        # .then(
-        #     =>
-        #         @emit "connected"
-        #         user = new User 1001, name: 'Sample User'
-        #         message = new TextMessage user, 'Some Sample Message', 'MSG-001'
-        #         @robot.receive message
-        #     =>
-        #         @robot.logger.warn "rejected"
-        # ).catch (e)=>
-        #     @robot.logger.error e
-
-    daemon : ->
-        # setInterval =>
-        #     co =>
-        #         yield @test()
-        # ,5000
-
-    test : =>
-        # res = yield @wechat.init()
-        # @robot.logger.info res.SyncKey
-
 
 
 
 exports.use = (robot) ->
-    new Sample robot
+    new WechatRobot robot
