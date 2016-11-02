@@ -30,15 +30,13 @@ module.exports = class WechatClient extends EventEmitter
 
         @cookie = process.env.HUBOT_WX_COOKIE
 
-        # 
-
         profilePath = path.join __dirname, '..', 'server-profile.yml'
         config = fs.readFileSync profilePath , 'utf8'
-        yaml.safeLoadAll config, (doc)=>
+        yaml.safeLoadAll config, (profile)=>
             server =
-                wxApi : @_thunkify doc['api']
-                pushApi : @_thunkify doc['push'], json : false
-                fileApi : @_thunkify doc['file'], json : false
+                wxApi : @_thunkify profile['api']
+                pushApi : @_thunkify profile['push'], json : false
+                fileApi : @_thunkify profile['file'], json : false
 
             @serverGroups.push server
 
