@@ -36,7 +36,6 @@ module.exports = class WechatClient extends EventEmitter
         @robot = @adapter.robot
 
         @robot.logger.info '[wechat client] initializing wechat client ...'
-        @robot.logger.info conf
 
         @baseRequest = 
             Uin: conf.uin
@@ -91,7 +90,8 @@ module.exports = class WechatClient extends EventEmitter
                     @initTime = new Date()
                     @emit "initialized"
                     @adapter.emit "connected"
-        .catch (e)-> console.log e.stack
+        .catch (e)-> 
+            console.log e.stack
 
         
     
@@ -166,14 +166,16 @@ module.exports = class WechatClient extends EventEmitter
 
             process.nextTick @_syncCheck
         
-        .catch (e)->console.log e.stack
+        .catch (e)->
+            if _.includes ['ECONNRESET','ETIMEDOUT'], e.code
+                process.nextTick @_syncCheck
+            console.log e.stack
 
 
     _resolveMessage: (sync, selector) =>
         _.forEach sync.AddMsgList, @_notifyHubot
     
     _notifyHubot: (message) =>
-        console.log message
         # group message
         if @_isGroup message.FromUserName 
             [..., from = 'anonymous', content] = /([@0-9a-z]+):<br\/>([\s\S]*)/.exec message.Content
@@ -205,6 +207,7 @@ module.exports = class WechatClient extends EventEmitter
                 domain = url.parse meta.domain
 
                 defaultOptions =
+                    timeout : 32000
                     baseUrl : meta.domain
                     forever: true
                     json: true
