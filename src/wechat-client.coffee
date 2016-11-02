@@ -1,95 +1,99 @@
-request = require 'request'
-_ = require 'lodash'
-url = require 'url'
-co = require 'co'
-util = require 'util'
-{EventEmitter} = require 'events'
 try
     {TextMessage,User} = require 'hubot'
 catch
     prequire = require('parent-require')
     {TextMessage,User} = prequire 'hubot'
 
-# TODO Configurable
+{EventEmitter} = require 'events'
 
-wxApiMeta = {
-    methods : ['get', 'post']
-    domain : 'https://wx.qq.com/cgi-bin/mmwebwx-bin'
-}
-
-fileApiMeta = {
-    methods : ['get', 'post']
-    domain : 'https://file2.wx.qq.com/cgi-bin/mmwebwx-bin'
-}
-
-pushApiMeta = {
-    methods : ['get', 'post']
-    domain : 'https://webpush.wx.qq.com/cgi-bin/mmwebwx-bin'
-}
-
-master = 'uniqhj'
+request = require 'request'
+_ = require 'lodash'
+url = require 'url'
+co = require 'co'
+util = require 'util'
+yaml = require('js-yaml')
+fs   = require('fs')
+path = require 'path'
 
 module.exports = class WechatClient extends EventEmitter
     
     constructor: (@adapter, conf)->
 
         @robot = @adapter.robot
-
-        @robot.logger.info '[wechat client] initializing wechat client ...'
+        @serverGroups = []
 
         @baseRequest = 
-            Uin: conf.uin
-            DeviceID: conf.deviceId
-            Skey : conf.skey
-            Sid : conf.sid
+            Uin: process.env.HUBOT_WX_UIN
+            DeviceID: process.env.HUBOT_WX_DEVICE_ID
+            Skey: process.env.HUBOT_WX_SKEY 
+            Sid: process.env.HUBOT_WX_SID 
 
-        @cookie = conf.cookie
+        @cookie = process.env.HUBOT_WX_COOKIE
 
-        @wxApi = @_thunkify wxApiMeta
-        @pushApi = @_thunkify pushApiMeta, json : false
-        @fileApi = @_thunkify fileApiMeta, json : false
+        # 
+
+        profilePath = path.join __dirname, '..', 'server-profile.yml'
+        config = fs.readFileSync profilePath , 'utf8'
+        yaml.safeLoadAll config, (doc)=>
+            server =
+                wxApi : @_thunkify doc['api']
+                pushApi : @_thunkify doc['push'], json : false
+                fileApi : @_thunkify doc['file'], json : false
+
+            @serverGroups.push server
+
+        @once 'initialized', @_syncCheck
+
         
     init: ->
 
-        # start checking new message once the client initialized
-        @once 'initialized', @_syncCheck
+        f_resolve = _.map @serverGroups, (server, i) =>
+            =>
+                unless @initialized
+                    @robot.logger.info "[init] initializing wechat web api with server group #{i + 1}"
+
+                    @wxApi = server.wxApi
+                    @pushApi = server.pushApi
+                    @fileApi = server.fileApi
+
+                    _initRsp = yield @wxApi.post
+                        uri : "/webwxinit"
+                        body : 
+                            BaseRequest : @baseRequest
+
+                    unless _initRsp.BaseResponse.Ret is 0
+                        @robot.logger.warning "[init] server group #{i} failed, #{@serverGroups.length - i - 1} group remaining"
+
+                    else
+                        @robot.logger.info "[init] init successed, Ret: #{_initRsp.BaseResponse.Ret}"
+
+                        # save syncKey
+                        @syncKey = _initRsp.SyncKey
+                        @syncCheckCount = Date.now()
+
+                        # own user info
+                        @robot.me = _initRsp.User
+
+                        # save contacts
+                        contactRsp = yield @getContact()
+                        @robot.contacts = contactRsp.MemberList
+
+                        # save master info
+                        @robot.master = _.find contactRsp, (u) ->
+                            master = process.env.HUBOT_WX_MASTER
+                            (u.Alias is master) or (u.NickName is master) or (u.UserName is master)
+
+                        # TODO group contacts
+                        @initialized = true
+                        @initTime = new Date()
+                        
+                        @emit "initialized"
+                        @adapter.emit "connected"
+
 
         co =>
-            # init wechat api
-            unless @initialized
-                @robot.logger.info '[init] initializing wechat web api ...'
-
-                _initRsp = yield @wxApi.post
-                    uri : "/webwxinit"
-                    body : 
-                        BaseRequest : @baseRequest
-
-                unless _initRsp.BaseResponse.Ret is 0
-                    @robot.logger.warning "[init] failed to init wechat api"
-                    do @adapter.robot.shutdown
-                else
-                    @robot.logger.info "[init] init successed, Ret: #{_initRsp.BaseResponse.Ret}"
-
-                    # save syncKey
-                    @syncKey = _initRsp.SyncKey
-                    @syncCheckCount = Date.now()
-                    
-                    # own user info
-                    @robot.me = _initRsp.User
-
-                    # save contacts
-                    contactRsp = yield @getContact()
-                    @robot.contacts = contactRsp.MemberList
-
-                    # save master info
-                    @robot.master = _.find contactRsp, (u) -> 
-                        (u.Alias is master) or (u.NickName is master) or (u.UserName is master)
-
-                    # TODO group contacts
-                    
-                    @initTime = new Date()
-                    @emit "initialized"
-                    @adapter.emit "connected"
+            for f in f_resolve
+                yield f()
         .catch (e)-> 
             console.log e.stack
 
@@ -202,7 +206,7 @@ module.exports = class WechatClient extends EventEmitter
 
     _thunkify: (meta, conf) ->
         _client = _.stubObject()
-        _.forEach meta.methods, (method) =>
+        _.forEach ['get','post'], (method) =>
             _client[method] = (options) =>
                 domain = url.parse meta.domain
 

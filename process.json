@@ -1,0 +1,16 @@
+{
+    "apps": [{
+        "name" : "hubot",
+        "script" : "bin/hubot",
+        "cwd" : "path of your hubot directory",
+        "env": {
+            "HUBOT_WX_COOKIE" : "",
+            "HUBOT_WX_UIN" : "",
+            "HUBOT_WX_SID" : "",
+            "HUBOT_WX_SKEY" : "",
+            "HUBOT_WX_DEVICE_ID": "",
+            "HUBOT_WX_DEVICE_MASTER": ""
+        },
+        "interpreter" : "/bin/sh"
+    }]
+}
