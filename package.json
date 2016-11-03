@@ -12,9 +12,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "eatgrass",
-  "repository" : {
-    "type" : "git",
-    "url" : "https://github.com/eatgrass/hubot-wechat.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eatgrass/hubot-wechat.git"
   },
   "bugs": {
     "url": "https://github.com/eatgrass/hubot-wechat/issues"
@@ -30,6 +30,7 @@
     "js-yaml": "^3.6.1",
     "lodash": "^4.16.4",
     "parent-require": "^1.0.0",
-    "request": "^2.76.0"
+    "request": "^2.76.0",
+    "xml2js": "^0.4.17"
   }
 }

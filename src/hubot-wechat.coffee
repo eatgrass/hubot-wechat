@@ -12,25 +12,20 @@ class WechatRobot extends Adapter
 
     constructor: ->
         super
-        
         @wechat = new WechatClient @
-        @robot.logger.info "Constructor"
+        @robot.logger.debug "Constructor: #{@robot.name}"
 
     send: (envelope, strings...) ->
         @robot.logger.info "Send"
 
-        # send to group
-
-        # send to user
         _.forEach strings, (content)=>
             @wechat.send envelope.user.id, content
-        # console.log envelope.user.id
 
     reply: (envelope, strings...) ->
         @robot.logger.info "Reply"
 
-        console.log envelope
-
+        _.forEach strings, (content)=>
+            @wechat.send envelope.user.id, content
     run: ->
         @wechat.init()
 

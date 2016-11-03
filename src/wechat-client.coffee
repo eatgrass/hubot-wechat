@@ -14,6 +14,7 @@ util = require 'util'
 yaml = require('js-yaml')
 fs   = require('fs')
 path = require 'path'
+utils = require './utils'
 
 module.exports = class WechatClient extends EventEmitter
     
@@ -29,6 +30,9 @@ module.exports = class WechatClient extends EventEmitter
             Sid: process.env.HUBOT_WX_SID 
 
         @cookie = process.env.HUBOT_WX_COOKIE
+
+        @acceptFriend = process.env.HUBOT_WX_ACCEPT_FRIEND or false
+        @ignoreGroupMessage = process.env.HUBOT_WX_IGNORE_GROUP or false
 
         profilePath = path.join __dirname, '..', 'server-profile.yml'
         config = fs.readFileSync profilePath , 'utf8'
@@ -123,6 +127,7 @@ module.exports = class WechatClient extends EventEmitter
                     Scene : 0
         .catch (e)=> console.log e.stack
 
+
     # listen incoming messages, fire 'sync' event based on the value of selector
     _syncCheck: =>
         @robot.logger.info "[syncCheck] sync checking"
@@ -175,28 +180,71 @@ module.exports = class WechatClient extends EventEmitter
 
 
     _resolveMessage: (sync, selector) =>
-        _.forEach sync.AddMsgList, @_notifyHubot
-    
-    _notifyHubot: (message) =>
-        # group message
-        if @_isGroup message.FromUserName 
-            [..., from = 'anonymous', content] = /([@0-9a-z]+):<br\/>([\s\S]*)/.exec message.Content
 
-            group = message.FromUserName
-            groupName = @contact[groupUser]
-            user = new User from, {ChatRoom: group}
-        # normal message from user
-        else
-            from = message.FromUserName
-            content = message.Content
-            user = new User from
+        @robot.logger.debug sync
 
-        @robot.logger.info "[incoming message] group: #{group}"
-        @robot.logger.info "[incoming message] from: #{from}"
-        @robot.logger.info "[incoming message] content: #{content}"
 
-        # console.log user
-        @robot.receive new TextMessage user, content, null
+        # FIXME
+        # 1 update [Profile]
+        # 4 update contacts [DelContactList, ModeContactList]
+
+        # 2 new message [AddMsgList]
+        f_message = _.map sync.AddMsgList, (message)=>
+            =>
+                from = message.FromUserName
+                content = message.Content
+
+                # session opened
+                if message.MsgType is 51
+                    xmlContent = yield utils.parseXml content
+
+                # normal message
+                if message.MsgType is 1
+
+                    # message from group
+                    if @_isGroup message.FromUserName
+                        [..., groupUser = 'anonymous', content] = /([@0-9a-z]+):<br\/>([\s\S]*)/.exec message.Content
+
+                    @_notifyHubot from, content, groupUser, message.MsgId
+
+                # system notification 
+                if message.MsgType is 10000
+                    @robot.logger.info content
+
+                # friend request
+                if message.MsgType is 37 and from is 'fmessage' 
+                    if @acceptFriend
+                        @robot.logger.debug "verify friend: "
+                        @robot.logger.debug "#{message.RecommendInfo}"
+                        rsp = yield @verifyFriend 
+                            Value : message.RecommendInfo.UserName
+                            VerifyUserTicket : message.RecommendInfo.Ticket
+                        @robot.logger.debug rsp
+        co =>
+            yield f_message
+        .catch (e)-> console.log e.stack
+                
+    verifyFriend : (user)=>
+
+        yield @wxApi.post
+            uri : "/webwxverifyuser"
+            qs :
+                r: Date.now()
+            body:
+                BaseRequest: @baseRequest
+                Opcode: 3
+                SceneList:[33]
+                SceneListCount: 1
+                VerifyContent: ""
+                VerifyUserList: [user]
+                VerifyUserListSize: 1
+                skey: @baseRequest.Skey
+            
+    _notifyHubot: (from, content, groupUser, MsgId) =>
+        user = new User from, groupUser : groupUser
+        unless (@_isGroup from and @ignoreGroupMessage)
+            @robot.receive new TextMessage user, content, MsgId
+                
 
     _isGroup : (username)->
         _.startsWith username, "@@"

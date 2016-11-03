@@ -10,7 +10,9 @@
             "HUBOT_WX_SID" : "",
             "HUBOT_WX_SKEY" : "",
             "HUBOT_WX_DEVICE_ID": "",
-            "HUBOT_WX_DEVICE_MASTER": ""
+            "HUBOT_WX_DEVICE_MASTER": "",
+            "HUBOT_WX_ACCEPT_FRIEND" : true,
+            "HUBOT_WX_IGNORE_GROUP" : false
         },
         "interpreter" : "/bin/sh"
     }]
