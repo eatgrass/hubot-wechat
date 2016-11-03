@@ -2,8 +2,9 @@
     "apps": [{
         "name" : "hubot",
         "script" : "bin/hubot",
-        "cwd" : "path of your hubot directory",
+        "cwd" : "your hubot's path",
         "env": {
+            "HUBOT_ADAPTER" : "wechat2",
             "HUBOT_WX_COOKIE" : "",
             "HUBOT_WX_UIN" : "",
             "HUBOT_WX_SID" : "",
