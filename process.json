@@ -1,0 +1,19 @@
+{
+    "apps": [{
+        "name" : "hubot",
+        "script" : "bin/hubot",
+        "cwd" : "your hubot's path",
+        "env": {
+            "HUBOT_ADAPTER" : "wechat2",
+            "HUBOT_WX_COOKIE" : "",
+            "HUBOT_WX_UIN" : "",
+            "HUBOT_WX_SID" : "",
+            "HUBOT_WX_SKEY" : "",
+            "HUBOT_WX_DEVICE_ID": "",
+            "HUBOT_WX_DEVICE_MASTER": "",
+            "HUBOT_WX_ACCEPT_FRIEND" : true,
+            "HUBOT_WX_IGNORE_GROUP" : false
+        },
+        "interpreter" : "/bin/sh"
+    }]
+}
