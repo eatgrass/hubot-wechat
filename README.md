@@ -29,7 +29,7 @@
     
         % myhubot/bin/hubot -a wechat2
         
-### PM2
+### Start with PM2
 
 1. install pm2 `npm install pm2 -g`
 
